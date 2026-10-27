@@ -30,6 +30,15 @@ agents that can see, hear, and understand.
 
 <!--END_DESCRIPTION-->
 
+## Included application: Voice Interview Coach
+
+This repository also contains a focused voice interview practice application in
+[`projects/voice-interview-coach`](projects/voice-interview-coach/README.md). It
+uses the LiveKit Agents framework for real-time audio sessions and adds its own
+role-specific question plans and coaching workflow. The framework and provider
+plugins remain LiveKit software; see the repository license and NOTICE for
+attribution and reuse terms.
+
 ## Features
 
 - **Flexible integrations**: A comprehensive ecosystem to mix and match the right STT, LLM, TTS, and Realtime API to suit your use case.
