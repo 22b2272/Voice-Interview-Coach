@@ -1,106 +1,100 @@
 # Voice Interview Coach
 
-Practice job interviews out loud with a real-time voice coach. Choose a role and
-experience level; the coach asks a short sequence of role-specific questions,
-offers practical feedback on each answer, and ends with a concise recap.
+A real-time voice practice app that runs short, role-specific mock interviews.
+It combines a curated question plan with conversational feedback. It is a practice
+tool, not a hiring assessment or an objective scoring system.
 
-This is an application built on the LiveKit Agents framework. The framework and
-provider integrations in this repository remain LiveKit's work; see
-[LICENSE](LICENSE), [NOTICE](NOTICE), and the [upstream project](https://github.com/livekit/agents)
-for attribution and licensing.
+This is a standalone application repository. It installs LiveKit Agents and its
+OpenAI and Silero integrations as Python dependencies; the framework and plugin
+source code are not vendored here. The retained [LICENSE](LICENSE) and
+[NOTICE](NOTICE) preserve the upstream licensing and attribution.
 
-## What it does
+## Features
 
-- Interview tracks for backend engineering, data analysis, and product management.
+- Backend engineer, data analyst, and product manager question tracks.
 - Beginner, intermediate, and advanced question plans.
 - Four questions per session, asked one at a time.
-- Feedback based on what you actually say, without hiring predictions or objective
-  candidate scores.
-- Local unit tests for the question plans and settings; no API key is needed for
-  those tests.
+- Feedback is grounded in the candidate's answer and avoids invented details or
+  hiring predictions.
+- Environment-based configuration with validation before starting a session.
+- Unit tests for question selection and configuration; no provider credentials
+  are needed to run those tests.
 
-## Quick start
+## Architecture
 
-Requirements: Python 3.10 or later, an OpenAI API key, and a microphone/speaker
-for voice practice. LiveKit server credentials are additionally needed for
-`dev` mode, but not for local console mode.
+```text
+src/interview_coach/
+  ├─ worker.py         starts the LiveKit agent and voice session
+  ├─ settings.py       validates role, level, model, voice, and API-key presence
+  ├─ agent.py          turns the selected plan into coaching instructions
+  └─ questions.py      provides the curated role/level question sequences
+```
 
-From the repository root in PowerShell:
+The app does not persist interview answers. Audio and model requests are processed
+by the configured LiveKit and OpenAI services; review their data-handling terms
+before using sensitive personal information.
+
+## Requirements
+
+- Python 3.10 or newer.
+- An OpenAI API key for live interviews.
+- For `dev` mode, a LiveKit project URL, API key, and API secret.
+- A working audio input/output device for local `console` mode.
+
+## Install
+
+From this directory:
 
 ```powershell
-Set-Location .\projects\voice-interview-coach
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -e .
 Copy-Item .env.example .env
 ```
 
-Add your `OPENAI_API_KEY` to `.env`, then start a local session:
+Set `OPENAI_API_KEY` in `.env`. Optionally set:
+
+| Variable | Default | Description |
+|---|---|---|
+| `INTERVIEW_ROLE` | `backend engineer` | `backend engineer`, `data analyst`, or `product manager` |
+| `INTERVIEW_LEVEL` | `intermediate` | `beginner`, `intermediate`, or `advanced` |
+| `OPENAI_LLM_MODEL` | `gpt-4o-mini` | OpenAI model used for responses |
+| `OPENAI_TTS_VOICE` | `echo` | OpenAI text-to-speech voice |
+
+`LIVEKIT_URL`, `LIVEKIT_API_KEY`, and `LIVEKIT_API_SECRET` are needed only when
+connecting through LiveKit server mode. Keep real credentials out of source control.
+
+## Run
+
+Local audio console:
 
 ```powershell
 voice-interview-coach console
 ```
 
-To connect through a LiveKit project, set `LIVEKIT_URL`, `LIVEKIT_API_KEY`, and
-`LIVEKIT_API_SECRET` in `.env`, then run:
+Connect through a LiveKit project:
 
 ```powershell
 voice-interview-coach dev
 ```
 
-Console mode avoids a LiveKit server, but still uses the configured OpenAI service.
-Model requests require network access and are subject to the provider's data
-handling terms.
+Console mode does not require a LiveKit server, but it still requires the OpenAI
+API key and provider access configured above.
 
-## Configure the interview
+## Test
 
-Set these optional values in `projects/voice-interview-coach/.env`:
-
-| Variable | Default | Available values / purpose |
-|---|---|---|
-| `INTERVIEW_ROLE` | `backend engineer` | `backend engineer`, `data analyst`, `product manager` |
-| `INTERVIEW_LEVEL` | `intermediate` | `beginner`, `intermediate`, `advanced` |
-| `OPENAI_LLM_MODEL` | `gpt-4o-mini` | OpenAI model used for responses |
-| `OPENAI_TTS_VOICE` | `echo` | OpenAI text-to-speech voice |
-
-Unsupported role or level values are rejected with an actionable error.
-
-## Run tests
-
-From `projects/voice-interview-coach`, with its virtual environment active:
+The unit tests cover only local configuration and question-plan logic and do not
+call external services:
 
 ```powershell
+python -m pip install -e .
 python -m unittest discover -s tests -v
 ```
 
-These tests exercise local question selection and configuration only; they do not
-make API calls.
-
-## Project layout
-
-```text
-projects/voice-interview-coach/
-  src/interview_coach/
-    agent.py       Interview behavior and coaching instructions
-    questions.py   Curated questions by role and level
-    settings.py    Environment configuration and validation
-    worker.py      LiveKit worker and voice-session setup
-  tests/           Offline unit tests
-  README.md        App-specific setup and usage
-```
-
-The LiveKit Agents framework and provider plugins are retained in the repository's
-`livekit-agents/` and `livekit-plugins/` directories. They provide the worker,
-voice-session, and provider integration layers used by the app.
-
 ## Limitations
 
-- The question sets are curated examples, not a validated interview curriculum.
+- Question plans are curated examples, not a comprehensive or validated interview
+  curriculum.
 - Feedback quality depends on the configured model and the clarity of the answer.
-- The app does not persist transcripts, provide analytics, or objectively score
-  candidates.
-- A live interview requires access to the configured OpenAI service.
-
-For framework documentation and broader examples, see the
-[LiveKit Agents documentation](https://docs.livekit.io/agents/) and
-[upstream repository](https://github.com/livekit/agents).
+- There is no transcript storage, analytics dashboard, or objective score.
+- The app requires a network connection to the configured OpenAI service.
